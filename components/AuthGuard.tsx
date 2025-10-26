@@ -11,25 +11,26 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, hasValidJWT, isLoading } = useAuth();
   const [showExpiredMessage, setShowExpiredMessage] = useState(false);
   const [countdown, setCountdown] = useState(3);
-  const [jwtCheckDelay, setJwtCheckDelay] = useState(true);
+  const [hasCheckedInitially, setHasCheckedInitially] = useState(false);
 
-  // Add a delay before checking JWT to allow session processing
+  // Only add delay for initial authentication, not on tab switches
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !hasCheckedInitially) {
+      // First time authentication - add a small delay
       const timer = setTimeout(() => {
-        setJwtCheckDelay(false);
-      }, 2000); // Wait 2 seconds for JWT processing
+        setHasCheckedInitially(true);
+      }, 1500); // Reduced from 2000ms to 1500ms
       
       return () => clearTimeout(timer);
-    } else {
-      setJwtCheckDelay(true);
+    } else if (!isAuthenticated) {
+      // Reset when user logs out
+      setHasCheckedInitially(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasCheckedInitially]);
 
   useEffect(() => {
-    // Show expired message if user is authenticated but JWT is invalid (after delay)
-    if (isAuthenticated && !hasValidJWT && !isLoading && !jwtCheckDelay) {
-      console.log('AuthGuard: Session expired condition met');
+    // Show expired message if user is authenticated but JWT is invalid (after initial check)
+    if (isAuthenticated && !hasValidJWT && !isLoading && hasCheckedInitially) {
       setShowExpiredMessage(true);
       setCountdown(3); // Reset countdown to 3 seconds
       
@@ -42,10 +43,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
     // Reset expired message if JWT becomes valid again
     else if (hasValidJWT) {
-      console.log('AuthGuard: Valid JWT found, resetting expired message');
       setShowExpiredMessage(false);
     }
-  }, [isAuthenticated, hasValidJWT, isLoading, jwtCheckDelay]);
+  }, [isAuthenticated, hasValidJWT, isLoading, hasCheckedInitially]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -58,8 +58,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [showExpiredMessage, countdown]);
 
-  // Loading state or JWT processing delay
-  if (isLoading || (isAuthenticated && jwtCheckDelay)) {
+  // Loading state or initial session processing
+  if (isLoading || (isAuthenticated && !hasCheckedInitially)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -72,8 +72,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // Not authenticated or no valid JWT (after delay)
-  if (!isAuthenticated || (isAuthenticated && !hasValidJWT && !showExpiredMessage && !jwtCheckDelay)) {
+  // Not authenticated or no valid JWT (after initial check)
+  if (!isAuthenticated || (isAuthenticated && !hasValidJWT && !showExpiredMessage && hasCheckedInitially)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
