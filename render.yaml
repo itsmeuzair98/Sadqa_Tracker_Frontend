@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: sadqa-tracker-frontend
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      # Explicitly set NODE_ENV to production for proper environment detection
+      - key: NODE_ENV
+        value: production
+    # Additional environment variables should be set in Render dashboard:
+    # Either upload .sadqa-tracker-frontend.env file or set manually
