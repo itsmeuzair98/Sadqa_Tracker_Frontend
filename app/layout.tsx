@@ -4,19 +4,17 @@ import Sidebar from './Components/Sidebar';
 import { UserProvider } from './context/UserContext';
 import { AuthProvider } from './context/AuthContext';
 import { ModalProvider, useModal } from './context/ModalContext'; // Import useModal
+import { SadqaProvider, useSadqaContext } from './context/SadqaContext'; // Import SadqaProvider
 import AddSadqaModal, { SadqaEntry } from './Components/AddSadqaModal'; // Import the modal and type
 import './globals.css';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-
-// Import the useSadqa hook
-import { useSadqa } from '@/hooks/useSadqa';
 
 // You can create a wrapper component inside the layout to handle the modal
 // and the sadqa data logic.
 function AppContent({ children }: { children: React.ReactNode }) {
   const { isModalOpen, closeModal } = useModal();
-  const { createEntry } = useSadqa();
+  const { createEntry } = useSadqaContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const pathname = usePathname();
 
@@ -65,10 +63,12 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <UserProvider>
-            <ModalProvider>
-              {/* The new wrapper component */}
-              <AppContent>{children}</AppContent>
-            </ModalProvider>
+            <SadqaProvider>
+              <ModalProvider>
+                {/* The new wrapper component */}
+                <AppContent>{children}</AppContent>
+              </ModalProvider>
+            </SadqaProvider>
           </UserProvider>
         </AuthProvider>
       </body>

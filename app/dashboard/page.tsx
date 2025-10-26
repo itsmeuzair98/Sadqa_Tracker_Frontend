@@ -6,7 +6,7 @@ import SadqaStats from '../Components/SadqaStats';
 import RecentSadqa from '../Components/RecentSadqa';
 import { useUser } from '../context/UserContext';
 import { useModal } from '../context/ModalContext';
-import { useSadqa } from '@/hooks/useSadqa';
+import { useSadqaContext } from '../context/SadqaContext';
 import { useAuth } from '../context/AuthContext';
 import { AuthGuard } from '@/components/AuthGuard';
 
@@ -21,10 +21,10 @@ export default function DashboardPage() {
   const { userName } = useUser();
   const { user, isAuthenticated } = useAuth();
   const { openModal } = useModal();
-  const { sadqaEntries, stats, isLoading, error } = useSadqa();
+  const { sadqaEntries, stats, isLoading, error } = useSadqaContext();
   
   // Convert backend entries to frontend format for compatibility
-  const sadqaData: SadqaEntry[] = sadqaEntries.map(entry => ({
+  const sadqaData: SadqaEntry[] = sadqaEntries.map((entry: any) => ({
     type: entry.type.toLowerCase(),
     amount: entry.amount,
     reason: entry.reason || '',

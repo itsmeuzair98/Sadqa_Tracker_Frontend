@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Filter, Calendar, DollarSign, Users, Shirt, ChevronDown, CircleDashed } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
-import { useSadqa } from '@/hooks/useSadqa';
+import { useSadqaContext } from '../context/SadqaContext';
 import AuthGuard from '@/components/AuthGuard';
 
 // Mock SadqaEntry type
@@ -47,7 +47,7 @@ const formatAmount = (amount: number) => {
 export default function SadqaHistoryPage() {
   const { userName } = useUser();
   const { isAuthenticated } = useAuth();
-  const { sadqaEntries, isLoading: loading } = useSadqa();
+  const { sadqaEntries, isLoading: loading } = useSadqaContext();
   
   const [filteredData, setFilteredData] = useState<SadqaEntry[]>([]);
 
@@ -86,7 +86,7 @@ export default function SadqaHistoryPage() {
   // Apply filters whenever the sadqaEntries or filter states change
   useEffect(() => {
     // Convert backend entries to frontend format for compatibility
-    const sadqaData: SadqaEntry[] = sadqaEntries.map(entry => ({
+    const sadqaData: SadqaEntry[] = sadqaEntries.map((entry: any) => ({
       type: entry.type.toLowerCase(),
       amount: entry.amount,
       reason: entry.reason || '',
@@ -123,7 +123,7 @@ export default function SadqaHistoryPage() {
   }, [sadqaEntries, startDate, endDate, selectedType, amountFilter]);
 
   // Convert backend entries to frontend format for display - computed value
-  const sadqaData: SadqaEntry[] = sadqaEntries.map(entry => ({
+  const sadqaData: SadqaEntry[] = sadqaEntries.map((entry: any) => ({
     type: entry.type.toLowerCase(),
     amount: entry.amount,
     reason: entry.reason || '',
