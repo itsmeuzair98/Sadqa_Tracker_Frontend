@@ -16,7 +16,12 @@ const handler = NextAuth({
       // Persist the OAuth access_token and user info to the token right after signin
       if (account && user) {
         token.accessToken = account.access_token
-        token.user = user
+        token.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        }
         
         // Sync user to backend database
         try {
@@ -60,7 +65,13 @@ const handler = NextAuth({
     async session({ session, token }) {
       // Send properties to the client
       session.accessToken = token.accessToken
-      session.user = token.user
+      // Ensure user object exists with proper fallbacks
+      if (token.user) {
+        session.user = {
+          ...session.user,
+          ...token.user
+        }
+      }
       session.dbUserId = token.dbUserId // Include database user ID
       session.jwtToken = token.jwtToken // Include JWT token for API calls
       return session

@@ -1,4 +1,4 @@
-import NextAuth, { DefaultSession } from 'next-auth'
+import NextAuth, { DefaultSession, DefaultUser } from 'next-auth'
 
 declare module 'next-auth' {
   /**
@@ -8,19 +8,13 @@ declare module 'next-auth' {
     accessToken?: string
     dbUserId?: number
     jwtToken?: string
-    user: {
+    user: DefaultSession['user'] & {
       id?: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-    } & DefaultSession['user']
+    }
   }
 
-  interface User {
+  interface User extends DefaultUser {
     id?: string
-    name?: string | null
-    email?: string | null
-    image?: string | null
   }
 }
 
@@ -30,11 +24,8 @@ declare module 'next-auth/jwt' {
     accessToken?: string
     dbUserId?: number
     jwtToken?: string
-    user?: {
+    user?: DefaultSession['user'] & {
       id?: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
     }
   }
 }
