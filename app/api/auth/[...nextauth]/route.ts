@@ -50,11 +50,16 @@ const handler = NextAuth({
             console.log('User synced to database successfully:', {
               email: dbUser.email,
               dbId: dbUser.id,
-              hasJWT: !!dbUser.access_token
+              hasJWT: !!dbUser.access_token,
+              tokenLength: dbUser.access_token ? dbUser.access_token.length : 0
             })
           } else {
             const errorText = await response.text()
             console.error('Failed to sync user to database:', response.status, errorText)
+            console.error('Response headers:', Object.fromEntries(response.headers.entries()))
+            
+            // Set a flag to indicate sync failed
+            token.syncFailed = true
           }
         } catch (error) {
           console.error('Error syncing user to database:', error)

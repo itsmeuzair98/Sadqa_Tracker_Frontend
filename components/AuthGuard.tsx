@@ -11,10 +11,25 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, hasValidJWT, isLoading } = useAuth();
   const [showExpiredMessage, setShowExpiredMessage] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [jwtCheckDelay, setJwtCheckDelay] = useState(true);
+
+  // Add a delay before checking JWT to allow session processing
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
+        setJwtCheckDelay(false);
+      }, 2000); // Wait 2 seconds for JWT processing
+      
+      return () => clearTimeout(timer);
+    } else {
+      setJwtCheckDelay(true);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    // Show expired message if user is authenticated but JWT is invalid
-    if (isAuthenticated && !hasValidJWT && !isLoading) {
+    // Show expired message if user is authenticated but JWT is invalid (after delay)
+    if (isAuthenticated && !hasValidJWT && !isLoading && !jwtCheckDelay) {
+      console.log('AuthGuard: Session expired condition met');
       setShowExpiredMessage(true);
       setCountdown(3); // Reset countdown to 3 seconds
       
@@ -27,9 +42,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
     // Reset expired message if JWT becomes valid again
     else if (hasValidJWT) {
+      console.log('AuthGuard: Valid JWT found, resetting expired message');
       setShowExpiredMessage(false);
     }
-  }, [isAuthenticated, hasValidJWT, isLoading]);
+  }, [isAuthenticated, hasValidJWT, isLoading, jwtCheckDelay]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -42,20 +58,22 @@ export function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [showExpiredMessage, countdown]);
 
-  // Loading state
-  if (isLoading) {
+  // Loading state or JWT processing delay
+  if (isLoading || (isAuthenticated && jwtCheckDelay)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking authentication...</p>
+          <p className="text-gray-600">
+            {isLoading ? 'Checking authentication...' : 'Processing session...'}
+          </p>
         </div>
       </div>
     );
   }
 
-  // Not authenticated or no valid JWT
-  if (!isAuthenticated || (isAuthenticated && !hasValidJWT && !showExpiredMessage)) {
+  // Not authenticated or no valid JWT (after delay)
+  if (!isAuthenticated || (isAuthenticated && !hasValidJWT && !showExpiredMessage && !jwtCheckDelay)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">

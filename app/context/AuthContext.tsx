@@ -39,9 +39,13 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session?.jwtToken && typeof window !== 'undefined') {
       localStorage.setItem('sadqa_jwt_token', session.jwtToken);
-      console.log('JWT token stored in localStorage from session');
-      // Trigger JWT validation after storing
-      window.dispatchEvent(new Event('jwt-updated'));
+      console.log('JWT token stored in localStorage from session:', session.jwtToken);
+      // Trigger JWT validation after storing with a small delay
+      setTimeout(() => {
+        window.dispatchEvent(new Event('jwt-updated'));
+      }, 100);
+    } else if (session && !session.jwtToken) {
+      console.warn('Session exists but no JWT token found:', session);
     }
   }, [session?.jwtToken]);
 
@@ -50,6 +54,8 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
     const checkJWTValidity = () => {
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('sadqa_jwt_token');
+        console.log('Checking JWT validity. Token exists:', !!token);
+        
         if (token) {
           try {
             // Basic JWT token format check (header.payload.signature)
@@ -59,10 +65,15 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
               const payload = JSON.parse(atob(parts[1]));
               const currentTime = Math.floor(Date.now() / 1000);
               
+              console.log('JWT payload:', payload);
+              console.log('Current time:', currentTime, 'Token exp:', payload.exp);
+              
               if (payload.exp && payload.exp > currentTime) {
+                console.log('JWT token is valid');
                 setHasValidJWT(true);
               } else {
                 // Token expired
+                console.log('JWT token expired');
                 localStorage.removeItem('sadqa_jwt_token');
                 setHasValidJWT(false);
                 // Don't redirect if already on login page
@@ -73,6 +84,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
               }
             } else {
               // Invalid token format
+              console.error('Invalid JWT token format');
               localStorage.removeItem('sadqa_jwt_token');
               setHasValidJWT(false);
             }
@@ -83,6 +95,7 @@ function AuthProviderInner({ children }: { children: ReactNode }) {
             setHasValidJWT(false);
           }
         } else {
+          console.log('No JWT token found');
           setHasValidJWT(false);
         }
       }
